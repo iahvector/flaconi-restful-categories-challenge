@@ -172,5 +172,20 @@ describe('Categories', () => {
         })
       })
     })
+
+    describe('Find all categories', () => {
+      it('Should return a list of categories', (done) => {
+        superagent.get('http://localhost:3000/api/v1/categories').end((err, res) => {
+          expect(err).to.not.exist
+          expect(res.status).to.equal(200)
+          expect(res.body).to.be.an('array')
+          let categories = res.body
+          for (let i = 0; i < categories.length; i++) {
+            validateCategory(categories[i])
+          }
+          done()
+        })
+      })
+    })
   })
 })

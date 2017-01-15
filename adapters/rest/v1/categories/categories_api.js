@@ -6,7 +6,7 @@
 
 let Router = require('express').Router
 let Category = require('../../../../domain/category')
-let CategoriesService = require('../../../../controllers/categories_controller')
+let CategoriesController = require('../../../../controllers/categories_controller')
 
 let categoriesApi = Router()
 
@@ -24,7 +24,7 @@ categoriesApi.post('/categories', (req, res) => {
     res.status(400).end(err.message)
   }
 
-  CategoriesService.createCategory(req.app.db, c).then((category) => {
+  CategoriesController.createCategory(req.app.db, c).then((category) => {
     res.status(201).json(category)
   }).catch((err) => {
     if (err.message.startsWith('E11000')) {
@@ -38,7 +38,7 @@ categoriesApi.post('/categories', (req, res) => {
 categoriesApi.get('/categories/:categoryId', (req, res) => {
   let id = req.params.categoryId
 
-  CategoriesService.findCategoryByIdOrSlug(req.app.db, id).then((category) => {
+  CategoriesController.findCategoryByIdOrSlug(req.app.db, id).then((category) => {
     if (category) {
       res.status(200).json(category)
     } else {
