@@ -8,16 +8,29 @@ let chai = require('chai')
 let superagent = require('superagent')
 let Category = require('../domain/category')
 let initdDB = require('../infrastructure/mongodb')
+let co = require('co')
 
 let expect = chai.expect
 
-let validateCategory = (category, hasParent) => {
+let validateCategory = (category, hasParent, isVisible) => {
   expect(category).to.be.an('object')
   expect(category.name).to.be.a('String')
-  if (hasParent) {
+
+  // If hasParent is undefined, validate parentCategory if it exists, otherwise validate parentCategory to exist
+  // and is valid or to not exist at all according to hasParent value
+  if (hasParent === true || category.parentCategory) {
     expect(category.parentCategory).to.be.a('String')
+  } else if (hasParent === false) {
+    expect(category.parentCategory).to.not.exist
   }
+
   expect(category.isVisible).to.be.a('Boolean')
+  // If isVisible is set, validate that category.isVisible equals its value
+  if (isVisible === true) {
+    expect(category.isVisible).to.equal(true)
+  } else if (isVisible === false) {
+    expect(category.isVisible).to.equal(false)
+  }
   expect(category.id).to.be.a('String')
   expect(category.slug).to.be.a('String')
 }
@@ -173,15 +186,57 @@ describe('Categories', () => {
       })
     })
 
-    describe('Find all categories', () => {
-      it('Should return a list of categories', (done) => {
+    describe('Find root categories', () => {
+      before((done) => {
+        co(function*() {
+          yield superagent.post('http://localhost:3000/api/v1/categories').send({
+            name: 'new category 3',
+            isVisible: true
+          })
+
+          yield superagent.post('http://localhost:3000/api/v1/categories').send({
+            name: 'new category 4',
+            isVisible: false
+          })
+        }).then(() => {
+          done()
+        })
+      })
+
+      it('Should return a list of root categories', (done) => {
         superagent.get('http://localhost:3000/api/v1/categories').end((err, res) => {
           expect(err).to.not.exist
           expect(res.status).to.equal(200)
           expect(res.body).to.be.an('array')
           let categories = res.body
           for (let i = 0; i < categories.length; i++) {
-            validateCategory(categories[i])
+            validateCategory(categories[i], false)
+          }
+          done()
+        })
+      })
+
+      it('Should return a list of visible only root categories', (done) => {
+        superagent.get('http://localhost:3000/api/v1/categories').query({isVisible: true}).end((err, res) => {
+          expect(err).to.not.exist
+          expect(res.status).to.equal(200)
+          expect(res.body).to.be.an('array')
+          let categories = res.body
+          for (let i = 0; i < categories.length; i++) {
+            validateCategory(categories[i], false, true)
+          }
+          done()
+        })
+      })
+
+      it('Should return a list of invisible only root categories', (done) => {
+        superagent.get('http://localhost:3000/api/v1/categories').query({isVisible: false}).end((err, res) => {
+          expect(err).to.not.exist
+          expect(res.status).to.equal(200)
+          expect(res.body).to.be.an('array')
+          let categories = res.body
+          for (let i = 0; i < categories.length; i++) {
+            validateCategory(categories[i], false, false)
           }
           done()
         })

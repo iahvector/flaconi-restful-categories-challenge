@@ -29,6 +29,36 @@ let CategoriesRepository = {
       })
     })
   },
+  findRootCategories: (db, isVisible) => {
+    return new Promise((resolve, reject) => {
+      let query = {
+        parentCategory: null
+      }
+
+      if (typeof isVisible === 'boolean') {
+        query.isVisible = isVisible
+      }
+
+      db.Categories.find(query).toArray().then((docs) => {
+        if (docs.length > 0) {
+          let categories = []
+          for (let i = 0; i < docs.length; i++) {
+            categories.push(new Category({
+              id: docs[i].id,
+              name: docs[i].name,
+              slug: docs[i].slug,
+              isVisible: docs[i].isVisible
+            }))
+          }
+          resolve(categories)
+        } else {
+          resolve(docs)
+        }
+      }).catch((err) => {
+        reject(err)
+      })
+    })
+  },
   findCategoryByIdOrSlug: (db, id) => {
     return new Promise((resolve, reject) => {
       db.Categories.findOne({$or: [{_id: id}, {slug: id}]}).then((doc) => {

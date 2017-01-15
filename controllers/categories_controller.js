@@ -10,6 +10,9 @@ let CategoriesController = {
   createCategory: (db, category) => {
     return CategoriesRepo.createCategory(db, category)
   },
+  findRootCategories: (db, isVisible) => {
+    return CategoriesRepo.findRootCategories(db, isVisible)
+  },
   findCategoryByIdOrSlug: (db, id) => {
     return CategoriesRepo.findCategoryByIdOrSlug(db, id)
   }

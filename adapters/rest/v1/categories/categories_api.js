@@ -35,6 +35,25 @@ categoriesApi.post('/categories', (req, res) => {
   })
 })
 
+categoriesApi.get('/categories', (req, res) => {
+  let isVisible = req.query.isVisible
+  if (isVisible) {
+    isVisible = isVisible.trim()
+    if (isVisible === 'true') {
+      isVisible = true
+    } else if (isVisible === 'false') {
+      isVisible = false
+    } else {
+      res.status(400).end('isVisible should be either true or false')
+    }
+  }
+  CategoriesController.findRootCategories(req.app.db, isVisible).then((categories) => {
+    res.status(200).json(categories)
+  }).catch((err) => {
+    res.status(500).end(err.message)
+  })
+})
+
 categoriesApi.get('/categories/:categoryId', (req, res) => {
   let id = req.params.categoryId
 
