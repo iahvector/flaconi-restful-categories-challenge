@@ -35,4 +35,18 @@ categoriesApi.post('/categories', (req, res) => {
   })
 })
 
+categoriesApi.get('/categories/:categoryId', (req, res) => {
+  let id = req.params.categoryId
+
+  CategoriesService.findCategoryByIdOrSlug(req.app.db, id).then((category) => {
+    if (category) {
+      res.status(200).json(category)
+    } else {
+      res.status(404).end()
+    }
+  }).catch((err) => {
+    res.status(500).end(err.message)
+  })
+})
+
 module.exports = categoriesApi

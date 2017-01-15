@@ -9,6 +9,9 @@ let CategoriesRepo = require('../repositories/categories_repo')
 let CategoriesController = {
   createCategory: (db, category) => {
     return CategoriesRepo.createCategory(db, category)
+  },
+  findCategoryByIdOrSlug: (db, id) => {
+    return CategoriesRepo.findCategoryByIdOrSlug(db, id)
   }
 }
 

@@ -128,5 +128,49 @@ describe('Categories', () => {
         })
       })
     })
+
+    describe('Find category by id or slug', () => {
+      let cat2Id
+      let cat2Slug
+
+      before((done) => {
+        superagent.post('http://localhost:3000/api/v1/categories').send({
+          name: 'new category 2',
+          isVisible: true
+        }).end((err, res) => {
+          cat2Id = res.body.id
+          cat2Slug = res.body.slug
+          done()
+        })
+      })
+
+      it('Should return the category associated with an id', (done) => {
+        superagent.get(`http://localhost:3000/api/v1/categories/${cat2Id}`).end((err, res) => {
+          expect(err).to.not.exist
+          expect(res.status).to.equal(200)
+          validateCategory(res.body)
+          expect(res.body.id).to.equal(cat2Id)
+          done()
+        })
+      })
+
+      it('Should return the category associated with a slug', (done) => {
+        superagent.get(`http://localhost:3000/api/v1/categories/${cat2Slug}`).end((err, res) => {
+          expect(err).to.not.exist
+          expect(res.status).to.equal(200)
+          validateCategory(res.body)
+          expect(res.body.slug).to.equal(cat2Slug)
+          done()
+        })
+      })
+
+      it('Should return error 404 when the id or slug does not exist in the db', (done) => {
+        superagent.get('http://localhost:3000/api/v1/categories/not-exist').end((err, res) => {
+          expect(err).to.exist
+          expect(res.status).to.equal(404)
+          done()
+        })
+      })
+    })
   })
 })

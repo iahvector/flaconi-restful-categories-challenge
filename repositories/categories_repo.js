@@ -28,6 +28,25 @@ let CategoriesRepository = {
         reject(err)
       })
     })
+  },
+  findCategoryByIdOrSlug: (db, id) => {
+    return new Promise((resolve, reject) => {
+      db.Categories.findOne({$or: [{_id: id}, {slug: id}]}).then((doc) => {
+        if (doc) {
+          resolve(new Category({
+            id: doc._id,
+            name: doc.name,
+            slug: doc.slug,
+            parentCategory: doc.parentCategory,
+            isVisible: doc.isVisible
+          }))
+        } else {
+          resolve()
+        }
+      }).catch((err) => {
+        reject(err)
+      })
+    })
   }
 }
 
