@@ -1,0 +1,27 @@
+version: '2'
+services:
+  mongo:
+    image: mongo:3.4.1
+    ports:
+      - "27017:27017"
+    networks:
+      - appnet
+    volumes:
+      - $PWD/mongo/data:/data/db
+      
+  app:
+    depends_on:
+      - mongo
+    build: $PWD/
+    ports:
+      - "3000:3000"
+    networks:
+      - appnet
+    environment:
+      MONGO_URL: "mongodb://mongo:27017"
+    links:
+      - mongo
+      
+networks:
+  appnet:
+    driver: bridge
