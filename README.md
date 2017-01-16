@@ -113,7 +113,7 @@ https://github.com/Flaconi/coding-challenges/blob/master/senior-fullstack-engine
     ```
 ### Set visibility:
 - Action: `PATCH`,
-- Path: `/categories/[category-id]` or `/categories/[category-slug]/set-visibility`
+- Path: `/categories/[category-id]/set-visibility` or `/categories/[category-slug]/set-visibility`
 - Body:
     - `isVisible`: Boolean, sets category visibility
 - Response:
