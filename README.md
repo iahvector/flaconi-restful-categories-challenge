@@ -19,7 +19,7 @@ https://github.com/Flaconi/coding-challenges/blob/master/senior-fullstack-engine
 4. Change directory to `flaconi-restful-categories-challenge`
 5. Execute npm install
 6. To run tests, execute `env PORT=[PORT_NUMBER] MONGO_URL://[MONGO_HOST]:[MONGO_PORT]/[TEST_DATABASE_NAME] npm test` (e.g. `env PORT=3000 MONGO_URL://localhost:27017/flaconi-test npm test`)
-7. To run the app, execute `env PORT=[PORT_NUMBER] MONGO_URL://[MONGO_HOST]:[MONGO_PORT]/[TEST_DATABASE_NAME] npm start`
+7. To run the app, execute `env PORT=[PORT_NUMBER] MONGO_URL://[MONGO_HOST]:[MONGO_PORT]/[DATABASE_NAME] npm start`
 
 ## API:
 - Prefix: `/api/v1`
