@@ -29,7 +29,7 @@ let CategoriesRepository = {
       })
     })
   },
-  findRootCategories: (db, isVisible) => {
+  findRootCategories: (db, isVisible, getChildrenTree) => {
     return new Promise((resolve, reject) => {
       let query = {
         parentCategory: null
@@ -39,45 +39,155 @@ let CategoriesRepository = {
         query.isVisible = isVisible
       }
 
-      db.Categories.find(query).toArray().then((docs) => {
-        if (docs.length > 0) {
-          let categories = []
-          for (let i = 0; i < docs.length; i++) {
-            categories.push(new Category({
-              id: docs[i].id,
-              name: docs[i].name,
-              slug: docs[i].slug,
-              isVisible: docs[i].isVisible
-            }))
+      if (getChildrenTree) {
+        db.Categories.aggregate([
+          {
+            $match: query
+          },
+          {
+            $graphLookup: {
+              from: 'categories',
+              startWith: '$_id',
+              connectFromField: '_id',
+              connectToField: 'parentCategory',
+              as: 'children'
+            }
           }
-          resolve(categories)
-        } else {
-          resolve(docs)
-        }
-      }).catch((err) => {
-        reject(err)
-      })
+        ]).toArray().then((res) => {
+          if (res.length > 0) {
+            for (let i = 0; i < res.length; i++) {
+              res[i] = constructTree(res[i])
+            }
+          }
+
+          resolve(res)
+        }).catch((err) => {
+          reject(err)
+        })
+      } else {
+        db.Categories.find(query).toArray().then((docs) => {
+          if (docs.length > 0) {
+            let categories = []
+            for (let i = 0; i < docs.length; i++) {
+              categories.push(new Category({
+                id: docs[i].id,
+                name: docs[i].name,
+                slug: docs[i].slug,
+                isVisible: docs[i].isVisible
+              }))
+            }
+            resolve(categories)
+          } else {
+            resolve(docs)
+          }
+        }).catch((err) => {
+          reject(err)
+        })
+      }
     })
   },
-  findCategoryByIdOrSlug: (db, id) => {
+  findCategoryByIdOrSlug: (db, id, getChildrenTree) => {
     return new Promise((resolve, reject) => {
-      db.Categories.findOne({$or: [{_id: id}, {slug: id}]}).then((doc) => {
-        if (doc) {
-          resolve(new Category({
-            id: doc._id,
-            name: doc.name,
-            slug: doc.slug,
-            parentCategory: doc.parentCategory,
-            isVisible: doc.isVisible
-          }))
-        } else {
-          resolve()
-        }
-      }).catch((err) => {
-        reject(err)
-      })
+      if (getChildrenTree) {
+        db.Categories.aggregate([
+          {
+            $match: {
+              $or: [{_id: id}, {slug: id}]
+            }
+          },
+          {
+            $graphLookup: {
+              from: 'categories',
+              startWith: '$_id',
+              connectFromField: '_id',
+              connectToField: 'parentCategory',
+              as: 'children'
+            }
+          }
+        ]).toArray().then((res) => {
+          if (res.length > 0) {
+            resolve(constructTree(res[0]))
+          } else {
+            resolve(res)
+          }
+        }).catch((err) => {
+          reject(err)
+        })
+      } else {
+        db.Categories.findOne({$or: [{_id: id}, {slug: id}]}).then((doc) => {
+          if (doc) {
+            let category = new Category({
+              id: doc._id,
+              name: doc.name,
+              slug: doc.slug,
+              parentCategory: doc.parentCategory,
+              isVisible: doc.isVisible
+            })
+            resolve(category)
+          } else {
+            resolve()
+          }
+        }).catch((err) => {
+          reject(err)
+        })
+      }
     })
   }
+}
+
+let constructTree = (category) => {
+  let children = category.children
+  delete category.children
+
+  let _category = new Category({
+    id: category._id,
+    name: category.name,
+    slug: category.slug,
+    parentCategory: category.parentCategory,
+    isVisible: category.isVisible
+  })
+
+  if (children.length > 0) {
+    for (let i = 0; i < children.length; i++) {
+      children[i] = new Category({
+        id: children[i]._id,
+        name: children[i].name,
+        slug: children[i].slug,
+        parentCategory: children[i].parentCategory,
+        isVisible: children[i].isVisible
+      })
+    }
+
+    _category.children = constructChildrenTree(_category, children)
+  } else {
+    _category.children = children
+  }
+
+  return _category
+}
+
+let constructChildrenTree = (parent, children) => {
+  let childrenTree = []
+
+  if (!children) {
+    return childrenTree
+  }
+
+  for (let i = 0; i < children.length; i++) {
+    if (children[i].parentCategory === parent.id) {
+      childrenTree.push(children[i])
+    }
+  }
+
+  if (childrenTree.length === 0) {
+    return childrenTree
+  }
+
+  for (let i = 0; i < childrenTree.length; i++) {
+    childrenTree[i].children = constructChildrenTree(childrenTree[i], children)
+  }
+
+  return childrenTree
 }
 
 module.exports = CategoriesRepository

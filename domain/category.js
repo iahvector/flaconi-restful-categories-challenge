@@ -47,6 +47,20 @@ class Category {
       }
     }
 
+    if (options.children) {
+      if (!(options.children instanceof Array)) {
+        throw new Error('options.slug must be an array')
+      }
+
+      if (options.children.length > 0) {
+        for (let i = 0; i < options.children.length; i++) {
+          if (!(options.children[i] instanceof Category)) {
+            throw new Error('options.children must contain only Categories')
+          }
+        }
+      }
+    }
+
     this.name = options.name
     this.parentCategory = options.parentCategory
     this.isVisible = options.isVisible

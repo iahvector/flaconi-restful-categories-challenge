@@ -37,17 +37,23 @@ categoriesApi.post('/categories', (req, res) => {
 
 categoriesApi.get('/categories', (req, res) => {
   let isVisible = req.query.isVisible
+  let children = req.query.children
   if (isVisible) {
-    isVisible = isVisible.trim()
-    if (isVisible === 'true') {
-      isVisible = true
-    } else if (isVisible === 'false') {
-      isVisible = false
-    } else {
+    try {
+      isVisible = parseBoolean(isVisible)
+    } catch (e) {
       res.status(400).end('isVisible should be either true or false')
     }
   }
-  CategoriesController.findRootCategories(req.app.db, isVisible).then((categories) => {
+  if (children) {
+    try {
+      children = parseBoolean(children)
+    } catch (e) {
+      res.status(400).end('children should be either true or false')
+    }
+  }
+
+  CategoriesController.findRootCategories(req.app.db, isVisible, children).then((categories) => {
     res.status(200).json(categories)
   }).catch((err) => {
     res.status(500).end(err.message)
@@ -56,8 +62,16 @@ categoriesApi.get('/categories', (req, res) => {
 
 categoriesApi.get('/categories/:categoryId', (req, res) => {
   let id = req.params.categoryId
+  let children = req.query.children
+  if (children) {
+    try {
+      children = parseBoolean(children)
+    } catch (e) {
+      res.status(400).end('children should be either true or false')
+    }
+  }
 
-  CategoriesController.findCategoryByIdOrSlug(req.app.db, id).then((category) => {
+  CategoriesController.findCategoryByIdOrSlug(req.app.db, id, children).then((category) => {
     if (category) {
       res.status(200).json(category)
     } else {
@@ -67,5 +81,16 @@ categoriesApi.get('/categories/:categoryId', (req, res) => {
     res.status(500).end(err.message)
   })
 })
+
+let parseBoolean = (boolString) => {
+  boolString = boolString.trim()
+  if (boolString === 'true') {
+    return true
+  } else if (boolString === 'false') {
+    return false
+  } else {
+    throw new Error(`Cannot parse boolean from ${boolString}`)
+  }
+}
 
 module.exports = categoriesApi

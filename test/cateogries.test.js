@@ -12,7 +12,7 @@ let co = require('co')
 
 let expect = chai.expect
 
-let validateCategory = (category, hasParent, isVisible) => {
+let validateCategory = (category, hasParent, isVisible, hasChildren, parentId) => {
   expect(category).to.be.an('object')
   expect(category.name).to.be.a('String')
 
@@ -33,6 +33,15 @@ let validateCategory = (category, hasParent, isVisible) => {
   }
   expect(category.id).to.be.a('String')
   expect(category.slug).to.be.a('String')
+
+  if (hasChildren || category.children) {
+    expect(category.children).to.be.an('array')
+    if (category.children.length > 0) {
+      for (let i = 0; i < category.children.length; i++) {
+        validateCategory(category.children[i], true, undefined, category.id)
+      }
+    }
+  }
 }
 
 describe('Categories', () => {
@@ -98,10 +107,10 @@ describe('Categories', () => {
     })
 
     after((done) => {
-      db.db.dropDatabase().then(() => {
+      // db.db.dropDatabase().then(() => {
         app.close()
         done()
-      })
+      // })
     })
 
     describe('Create category', () => {
@@ -147,12 +156,50 @@ describe('Categories', () => {
       let cat2Slug
 
       before((done) => {
-        superagent.post('http://localhost:3000/api/v1/categories').send({
-          name: 'new category 2',
-          isVisible: true
-        }).end((err, res) => {
-          cat2Id = res.body.id
-          cat2Slug = res.body.slug
+        co(function*() {
+          let cat2Res = yield superagent.post('http://localhost:3000/api/v1/categories').send({
+            name: 'new category 2',
+            isVisible: true
+          })
+          cat2Id = cat2Res.body.id
+          cat2Slug = cat2Res.body.slug
+
+          let cat21Res = yield superagent.post('http://localhost:3000/api/v1/categories').send({
+            name: 'new category 2 1',
+            parentCategory: cat2Id,
+            isVisible: true
+          })
+
+          let cat211Res = yield superagent.post('http://localhost:3000/api/v1/categories').send({
+            name: 'new category 2 1 1',
+            parentCategory: cat21Res.body.id,
+            isVisible: true
+          })
+
+          let cat2111Res = yield superagent.post('http://localhost:3000/api/v1/categories').send({
+            name: 'new category 2 1 1 1',
+            parentCategory: cat211Res.body.id,
+            isVisible: true
+          })
+
+          let cat22Res = yield superagent.post('http://localhost:3000/api/v1/categories').send({
+            name: 'new category 2 2',
+            parentCategory: cat2Id,
+            isVisible: true
+          })
+
+          let cat221Res = yield superagent.post('http://localhost:3000/api/v1/categories').send({
+            name: 'new category 2 2 1',
+            parentCategory: cat22Res.body.id,
+            isVisible: true
+          })
+
+          let cat23Res = yield superagent.post('http://localhost:3000/api/v1/categories').send({
+            name: 'new category 2 3',
+            parentCategory: cat2Id,
+            isVisible: true
+          })
+        }).then((res) => {
           done()
         })
       })
@@ -173,6 +220,16 @@ describe('Categories', () => {
           expect(res.status).to.equal(200)
           validateCategory(res.body)
           expect(res.body.slug).to.equal(cat2Slug)
+          done()
+        })
+      })
+
+      it('Should return the children tree of the category', (done) => {
+        superagent.get(`http://localhost:3000/api/v1/categories/${cat2Id}`).query({children: true}).end((err, res) => {
+          expect(err).to.not.exist
+          expect(res.status).to.equal(200)
+          expect(res.body.id).to.equal(cat2Id)
+          validateCategory(res.body, undefined, undefined, true)
           done()
         })
       })
@@ -211,6 +268,20 @@ describe('Categories', () => {
           let categories = res.body
           for (let i = 0; i < categories.length; i++) {
             validateCategory(categories[i], false)
+          }
+          done()
+        })
+      })
+
+      it('Should return the children tree of each category', (done) => {
+        superagent.get('http://localhost:3000/api/v1/categories').query({children: true}).end((err, res) => {
+          expect(err).to.not.exist
+          expect(res.status).to.equal(200)
+          expect(res.body).to.be.an('array')
+          let categories = res.body
+          expect(categories).to.have.length.above(0)
+          for (let i = 0; i < categories.length; i++) {
+            validateCategory(categories[i], false, undefined, true)
           }
           done()
         })
