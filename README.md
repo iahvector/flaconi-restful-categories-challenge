@@ -132,3 +132,12 @@ https://github.com/Flaconi/coding-challenges/blob/master/senior-fullstack-engine
             "isVisible": boolean,
         }
     ```
+
+## Notes
+- `GET /categories` is not paginated as there are not supposed to be many categories to require pagination
+- In Set visibility, the path `/set-visibility` was used despite not comforming with REST to indicate that this request changes only the visibility of the category
+
+## TODO
+- Document API using swagger
+- Implement user authentication and authorization using JWT tokens and scopes `category.read` & `category.write`
+- Implement caching using Redis and utilize cache and ETag headers
