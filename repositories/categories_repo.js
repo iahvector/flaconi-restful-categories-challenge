@@ -132,6 +132,27 @@ let CategoriesRepository = {
         })
       }
     })
+  },
+  setCategoryVisibility: (db, id, isVisible) => {
+    return new Promise((resolve, reject) => {
+      db.Categories.findOneAndUpdate(
+        {$or: [{_id: id}, {slug: id}]},
+        {$set: {isVisible: isVisible}},
+        {returnOriginal: false}
+      ).then((res) => {
+        if (res.value) {
+          resolve(new Category({
+            id: res.value.id,
+            name: res.value.name,
+            slug: res.value.slug,
+            parentCategory: res.value.parentCategory,
+            isVisible: res.value.isVisible
+          }))
+        } else {
+          resolve()
+        }
+      })
+    })
   }
 }
 

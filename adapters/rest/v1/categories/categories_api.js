@@ -82,6 +82,25 @@ categoriesApi.get('/categories/:categoryId', (req, res) => {
   })
 })
 
+categoriesApi.patch('/categories/:categoryId/set-visibility', (req, res) => {
+  let id = req.params.categoryId
+  let isVisible = req.body.isVisible
+
+  if (typeof isVisible !== 'boolean') {
+    res.status(400).end('isVisible should be either true or false')
+  }
+
+  CategoriesController.setCategoryVisibility(req.app.db, id, isVisible).then((category) => {
+    if (category) {
+      res.status(200).json(category)
+    } else {
+      res.status(404).end()
+    }
+  }).catch((err) => {
+    res.status(500).end(err.message)
+  })
+})
+
 let parseBoolean = (boolString) => {
   boolString = boolString.trim()
   if (boolString === 'true') {

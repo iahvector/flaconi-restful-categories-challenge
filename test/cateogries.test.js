@@ -107,10 +107,10 @@ describe('Categories', () => {
     })
 
     after((done) => {
-      // db.db.dropDatabase().then(() => {
+      db.db.dropDatabase().then(() => {
         app.close()
         done()
-      // })
+      })
     })
 
     describe('Create category', () => {
@@ -309,6 +309,32 @@ describe('Categories', () => {
           for (let i = 0; i < categories.length; i++) {
             validateCategory(categories[i], false, false)
           }
+          done()
+        })
+      })
+    })
+
+    describe('Set category visibility', () => {
+      let cat5Id
+      before((done) => {
+        superagent.post('http://localhost:3000/api/v1/categories').send({
+          name: 'new category 5',
+          isVisible: true
+        }).end((err, res) => {
+          cat5Id = res.body.id
+          done()
+        })
+      })
+
+      it('Should change category visibility', (done) => {
+        superagent.patch(`http://localhost:3000/api/v1/categories/${cat5Id}/set-visibility`).send({
+          isVisible: false
+        }).end((err, res) => {
+          expect(err).to.not.exist
+          expect(res.status).to.equal(200)
+          expect(res.body).to.be.an('object')
+          let category = res.body
+          validateCategory(category, undefined, false)
           done()
         })
       })

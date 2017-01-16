@@ -15,6 +15,9 @@ let CategoriesController = {
   },
   findCategoryByIdOrSlug: (db, id, getChildrenTree) => {
     return CategoriesRepo.findCategoryByIdOrSlug(db, id, getChildrenTree)
+  },
+  setCategoryVisibility: (db, id, isVisible) => {
+    return CategoriesRepo.setCategoryVisibility(db, id, isVisible)
   }
 }
 
