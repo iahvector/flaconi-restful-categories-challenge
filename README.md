@@ -13,7 +13,7 @@ https://github.com/Flaconi/coding-challenges/blob/master/senior-fullstack-engine
 5. Make requests against `localhost:3000`
 
 ### Without docker
-1. Install MongoDB 3.4: http://docs.mongodb.com/manual/installation
+1. Install MongoDB 3.4: http://docs.mongodb.com/manual/installation (NOTE: If you upgraded from a previous version to 3.4, it will not work until you set `setFeatureCompatibilityVersion` to 3.4. Check https://docs.mongodb.com/manual/reference/command/setFeatureCompatibilityVersion/)
 2. Install node 6.4: https://nodejs.org/en/download/ or use NVM https://github.com/creationix/nvm#install-script
 3. Clone this repository
 4. Change directory to `flaconi-restful-categories-challenge`
