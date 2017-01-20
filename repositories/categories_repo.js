@@ -70,7 +70,7 @@ let CategoriesRepository = {
             let categories = []
             for (let i = 0; i < docs.length; i++) {
               categories.push(new Category({
-                id: docs[i].id,
+                id: docs[i]._id,
                 name: docs[i].name,
                 slug: docs[i].slug,
                 isVisible: docs[i].isVisible
@@ -98,8 +98,8 @@ let CategoriesRepository = {
           {
             $graphLookup: {
               from: 'categories',
-              startWith: '$_id',
-              connectFromField: '_id',
+              startWith: '$slug',
+              connectFromField: 'slug',
               connectToField: 'parentCategory',
               as: 'children'
             }
@@ -195,7 +195,7 @@ let constructChildrenTree = (parent, children) => {
   }
 
   for (let i = 0; i < children.length; i++) {
-    if (children[i].parentCategory === parent.id) {
+    if (children[i].parentCategory === parent.slug) {
       childrenTree.push(children[i])
     }
   }
