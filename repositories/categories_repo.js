@@ -98,8 +98,8 @@ let CategoriesRepository = {
           {
             $graphLookup: {
               from: 'categories',
-              startWith: '$_id',
-              connectFromField: '_id',
+              startWith: '$slug',
+              connectFromField: 'slug',
               connectToField: 'parentCategory',
               as: 'children'
             }
@@ -195,7 +195,7 @@ let constructChildrenTree = (parent, children) => {
   }
 
   for (let i = 0; i < children.length; i++) {
-    if (children[i].parentCategory === parent.id) {
+    if (children[i].parentCategory === parent.slug) {
       childrenTree.push(children[i])
     }
   }
