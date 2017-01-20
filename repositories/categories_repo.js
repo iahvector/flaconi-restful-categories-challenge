@@ -70,7 +70,7 @@ let CategoriesRepository = {
             let categories = []
             for (let i = 0; i < docs.length; i++) {
               categories.push(new Category({
-                id: docs[i].id,
+                id: docs[i]._id,
                 name: docs[i].name,
                 slug: docs[i].slug,
                 isVisible: docs[i].isVisible
